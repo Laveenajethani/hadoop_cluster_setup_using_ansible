@@ -1,0 +1,60 @@
+- hosts: client
+  vars_prompt:
+    - name: "client_public_IP"
+      prompt: "Enter Client Public IP "
+      private: no
+
+    - name: "namenode_public_IP"
+      prompt: "Enter Namenode Public IP "
+      private: no
+
+    - name: "namenode_port"
+      prompt: "Enter namenode port "
+      private: no
+
+  tasks: 
+    - name: "downloading jdk"
+      get_url:
+       url: http://35.244.242.82/yum/java/el7/x86_64/jdk-8u171-linux-x64.rpm
+       dest: /root/jdk-8u171-linux-x64.rpm
+       mode: '0644'
+    
+    - name: "querying the jdk installed or not"
+      shell: "rpm -q jdk-8u171-linux-x64.rpm"
+      register: java_result
+    - debug:
+       var: java_result.stdout
+
+    - name: "installing jdk"
+      shell: "rpm -i jdk-8u171-linux-x64.rpm"
+      when: java_result.stdout != "jdk1.8-1.8.0_171-fcs.x86_64"
+  
+    - name: "downloading hadoop"
+      get_url:
+       url: https://archive.apache.org/dist/hadoop/core/hadoop-1.2.1/hadoop-1.2.1-1.x86_64.rpm
+       dest: /root/hadoop-1.2.1-1.x86_64.rpm
+       mode: '0644'
+
+    - name: "querying the hadoop installed or not"
+      shell: "rpm -q hadoop-1.2.1-1.x86_64.rpm"
+      register: hadoop_result
+    - debug:
+       var: hadoop_result.stdout
+
+    - name: "installing hadoop"
+      shell: "rpm -i hadoop-1.2.1-1.x86_64.rpm --force"
+      when: hadoop_result.stdout != "hadoop-1.2.1-1.x86_64"
+
+    - name: "copying core file to datanode"
+      template:
+       src: "C_core-site.xml"
+       dest: "/etc/hadoop/core-site.xml"
+
+    - name: "checking status of connection"
+      shell: "hadoop dfsadmin -report"
+      register: client_connect
+    - debug:
+       var: client_connect.stdout
+
+  
+    
