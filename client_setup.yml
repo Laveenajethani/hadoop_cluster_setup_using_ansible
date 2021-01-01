@@ -1,4 +1,7 @@
 - hosts: client
+  become: true
+  become_method: sudo
+  become_user: root
   vars_prompt:
     - name: "client_public_IP"
       prompt: "Enter Client Public IP "
@@ -16,7 +19,7 @@
     - name: "downloading jdk"
       get_url:
        url: http://35.244.242.82/yum/java/el7/x86_64/jdk-8u171-linux-x64.rpm
-       dest: /root/jdk-8u171-linux-x64.rpm
+       dest: /home/ec2-user/jdk-8u171-linux-x64.rpm
        mode: '0644'
     
     - name: "checking the jdk installed or not"
@@ -33,7 +36,7 @@
     - name: "downloading hadoop"
       get_url:
        url: https://archive.apache.org/dist/hadoop/core/hadoop-1.2.1/hadoop-1.2.1-1.x86_64.rpm
-       dest: /root/hadoop-1.2.1-1.x86_64.rpm
+       dest: /home/ec2-user/hadoop-1.2.1-1.x86_64.rpm
        mode: '0644'
 
     - name: "checking the hadoop installed or not"
@@ -47,7 +50,7 @@
       shell: "rpm -i hadoop-1.2.1-1.x86_64.rpm --force"
       when: hadoop_result.rc==127 
 
-    - name: "copying core file to datanode"
+    - name: "copying core file to client"
       template:
        src: "C_core-site.xml"
        dest: "/etc/hadoop/core-site.xml"
